@@ -1,0 +1,366 @@
+2 Lines Code:
+#include <iostream>
+#include <climits>
+
+using namespace std;
+
+class Array {
+    int arr[100];
+    int n;
+
+public:
+    Array()
+    {
+        n = 0;
+    }
+    bool on_segment(int xi, int xj, int xk, int yi, int yj, int yk)
+    {
+        if (min(xi, xj) <= xk && xk <= max(xi, xj) && min(yi, yj) <= yk && yk <= max(yi, yj))
+            return true;
+        else
+            return false;
+    }
+
+    int Direction(int xi, int yi, int xj, int yj, int xk, int yk)
+    {
+        return (xk - xi) * (yj - yi) - (xj - xi) * (yk - yi);
+    }
+
+    bool segment_intersect(int p1x, int p1y, int p2x, int p2y, int p3x, int p3y, int p4x, int p4y)
+    {
+        int d1, d2, d3, d4;
+        d1 = Direction(p3x, p3y, p4x, p4y, p1x, p1y);
+        d2 = Direction(p3x, p3y, p4x, p4y, p2x, p2y);
+        d3 = Direction(p1x, p1y, p2x, p2y, p3x, p3y);
+        d4 = Direction(p1x, p1y, p2x, p2y, p4x, p4y);
+
+        if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))
+            return true;
+        else if (d1 == 0 && on_segment(p3x, p4x, p1x, p3y, p4y, p1y))
+            return true;
+        else if (d2 == 0 && on_segment(p3x, p4x, p2x, p3y, p4y, p2y))
+            return true;
+        else if (d3 == 0 && on_segment(p1x, p2x, p2x, p1y, p2y, p2y))
+            return true;
+        else if (d4 == 0 && on_segment(p1x, p2x, p4x, p1y, p2y, p4y))
+            return true;
+        else
+            return false;
+    }
+};
+
+int main()
+{
+    Array array1;
+
+    // Test the line intersection logic
+    int p1x = 1, p1y = 1;
+    int p2x = 1, p2y = 10;
+    int p3x = 10, p3y = 10;
+    int p4x = 10, p4y = 1;
+
+    Array array;
+    bool intersect = array.segment_intersect(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y);
+
+    if (intersect)
+        cout << "The line segments intersect." << endl;
+    else
+        cout << "The line segments do not intersect." << endl;
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+N lines Code:
+#include <iostream>
+
+using namespace std;
+
+class LineIntersect {
+private:
+    int segments[10][4];
+    int numSegments;
+
+    int calculateOrientation(int x1, int y1, int x2, int y2, int x3, int y3) const {
+        int val = (y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2);
+        if (val == 0)
+            return 0; // Collinear
+        return (val > 0) ? 1 : 2; // Clockwise or Counterclockwise
+    }
+
+    bool checkIntersect(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) const {
+        int o1 = calculateOrientation(x1, y1, x2, y2, x3, y3);
+        int o2 = calculateOrientation(x1, y1, x2, y2, x4, y4);
+        int o3 = calculateOrientation(x3, y3, x4, y4, x1, y1);
+        int o4 = calculateOrientation(x3, y3, x4, y4, x2, y2);
+
+        if (o1 != o2 && o3 != o4)
+            return true;
+
+        if (o1 == 0 && x3 >= min(x1, x2) && x3 <= max(x1, x2) && y3 >= min(y1, y2) && y3 <= max(y1, y2))
+            return true;
+
+        if (o2 == 0 && x4 >= min(x1, x2) && x4 <= max(x1, x2) && y4 >= min(y1, y2) && y4 <= max(y1, y2))
+            return true;
+
+        if (o3 == 0 && x1 >= min(x3, x4) && x1 <= max(x3, x4) && y1 >= min(y3, y4) && y1 <= max(y3, y4))
+            return true;
+
+        if (o4 == 0 && x2 >= min(x3, x4) && x2 <= max(x3, x4) && y2 >= min(y3, y4) && y2 <= max(y3, y4))
+            return true;
+
+        return false;
+    }
+
+public:
+    LineIntersect() : numSegments(0) {}
+
+    void readSegments() {
+        cout << "Enter the number of segments: ";
+        cin >> numSegments;
+
+        if (numSegments <= 0 || numSegments > 10) {
+            cout << "Invalid number of segments. Exiting..." << endl;
+            exit(1);
+        }
+        for (int i = 0; i < numSegments; i++) {
+            cout << "Endpoint 1 (x y): ";
+            cin >> segments[i][0] >> segments[i][1];
+
+            cout << "Endpoint 2 (x y): ";
+            cin >> segments[i][2] >> segments[i][3];
+        }
+    }
+
+    bool anySegmentsIntersect() const {
+        for (int i = 0; i < numSegments; i++) {
+            for (int j = i + 1; j < numSegments; j++) {
+                if (checkIntersect(segments[i][0], segments[i][1], segments[i][2], segments[i][3],
+                                   segments[j][0], segments[j][1], segments[j][2], segments[j][3])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+};
+
+int main() {
+    LineIntersect lineIntersect;
+    lineIntersect.readSegments();
+
+    bool intersects = lineIntersect.anySegmentsIntersect();
+
+    if (intersects)
+        cout << "There is an intersection among the segments." << endl;
+    else
+        cout << "There are no intersections among the segments." << endl;
+
+    return 0;
+}
+
+
+Graman hull Code:
+#include <iostream>
+#include <stack>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+int orientation(Point p, Point q, Point r) {
+    int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+
+    if (val == 0)
+        return 0; // collinear
+    else if (val > 0)
+        return 1; // clockwise
+    else
+        return 2; // counterclockwise
+}
+
+stack<Point> computeConvexHull(Point points[], int numPoints) {
+    stack<Point> hullStack;
+
+    if (numPoints < 3) {
+        cout << "Convex hull cannot be computed. At least 3 points are required." << endl;
+        return hullStack;
+    }
+
+    int leftmostIndex = 0;
+    for (int i = 1; i < numPoints; i++) {
+        if (points[i].x < points[leftmostIndex].x)
+            leftmostIndex = i;
+    }
+
+    int p = leftmostIndex;
+    int q;
+    do {
+        hullStack.push(points[p]);
+        q = (p + 1) % numPoints;
+
+        for (int i = 0; i < numPoints; i++) {
+            if (orientation(points[p], points[i], points[q]) == 2)
+                q = i;
+        }
+
+        p = q;
+    } while (p != leftmostIndex);
+
+    return hullStack;
+}
+
+int main() {
+    int numPoints;
+    cout << "Enter the number of points: ";
+    cin >> numPoints;
+
+    Point inputPoints[numPoints];
+
+    cout << "Enter the coordinates of the points:\n";
+    for (int i = 0; i < numPoints; i++) {
+        cout << "Input x and y for point " << i + 1 << ": ";
+        cin >> inputPoints[i].x >> inputPoints[i].y;
+    }
+
+    stack<Point> hullPoints = computeConvexHull(inputPoints, numPoints);
+
+    cout << "Convex Hull Points:\n";
+    while (!hullPoints.empty()) {
+        Point point = hullPoints.top();
+        cout << "(" << point.x << ", " << point.y << ")\n";
+        hullPoints.pop();
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Jarvis march code
+#include <iostream>
+#include <stack>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+stack<Point> computeConvexHull(Point* points, int numPoints) {
+    stack<Point> hullStack;
+
+    if (numPoints < 3) {
+        cout << "Convex hull cannot be computed. At least 3 points are required." << endl;
+        return hullStack;
+    }
+
+    int lowestYIndex = 0;
+    int lowestY = points[0].y;
+
+    for (int i = 1; i < numPoints; i++) {
+        if (points[i].y < lowestY || (points[i].y == lowestY && points[i].x < points[lowestYIndex].x)) {
+            lowestY = points[i].y;
+            lowestYIndex = i;
+        }
+    }
+
+    swap(points[0], points[lowestYIndex]);
+    for (int i = 1; i < numPoints - 1; i++) {
+        for (int j = i + 1; j < numPoints; j++) {
+            int val = (points[i].y - points[0].y) * (points[j].x - points[i].x) - (points[i].x - points[0].x) * (points[j].y - points[i].y);
+
+            if (val > 0) { // Fix: Change '<' to '>'
+                swap(points[i], points[j]);
+            }
+        }
+    }
+
+    hullStack.push(points[0]);
+    hullStack.push(points[1]);
+
+    for (int i = 2; i < numPoints; i++) {
+        while (hullStack.size() > 1) {
+            Point top = hullStack.top();
+            hullStack.pop();
+            Point nextToTop = hullStack.top();
+            hullStack.push(top);
+
+            int val = (nextToTop.y - top.y) * (points[i].x - top.x) - (nextToTop.x - top.x) * (points[i].y - top.y);
+
+            if (val > 0) // Fix: Change '!=' to '>'
+                break;
+
+            hullStack.pop();
+        }
+
+        hullStack.push(points[i]);
+    }
+
+    return hullStack;
+}
+
+int main() {
+    int numPoints;
+    cout << "Enter the number of points: ";
+    cin >> numPoints;
+
+    Point* inputPoints = new Point[numPoints];
+
+    cout << "Enter the coordinates of the points:\n";
+    for (int i = 0; i < numPoints; i++) {
+        cout << "Point " << i + 1 << " - x: ";
+        cin >> inputPoints[i].x;
+        cout << "Point " << i + 1 << " - y: ";
+        cin >> inputPoints[i].y;
+    }
+
+    stack<Point> hullPoints = computeConvexHull(inputPoints, numPoints);
+
+    cout << "Convex Hull Points:\n";
+    while (!hullPoints.empty()) {
+        Point point = hullPoints.top();
+        cout << "(" << point.x << ", " << point.y << ")\n";
+        hullPoints.pop();
+    }
+
+    delete[] inputPoints;
+
+    return 0;
+}
